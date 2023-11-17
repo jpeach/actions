@@ -123,7 +123,12 @@ fi
 
 # Use an access token to checkout (private repositories)
 if [[ -n "${TOKEN}" ]]; then
-    base64_token=$(echo -n "x-access-token:${TOKEN}" | base64)
+    # On Linux with GNU coreutils, we need to disable line wrapping.
+    case $(uname -s) in
+    Linux) base64_token=$(echo -n "x-access-token:${TOKEN}" | base64 --wrap=0) ;;
+    Darwin) base64_token=$(echo -n "x-access-token:${TOKEN}" | base64) ;;
+    esac
+
     echo "::add-mask::${base64_token}"
     git config --global "http.${GITHUB_SERVER_URL}/.extraheader" "Authorization: basic ${base64_token}"
     echo "TOKEN_SET=1" >>"$GITHUB_STATE"
